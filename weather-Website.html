@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weather App</title>
+  <style>
+    /* Here i have used Css for the designing */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ff00000b, #0072ff);
+      color: white;
+      text-align: center;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      width: 300px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      background-color: #0072ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #005bb5;
+    }
+
+    .weather-info p {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    .weather-info h2 {
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 400px) {
+      .container {
+        width: 90%;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .weather-info p, .weather-info h2 {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Weather Forecast</h1>
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter city name">
+      <button id="searchButton">Get Weather</button>
+    </div>
+    <div class="weather-info">
+      <h2 id="cityName">City: --</h2>
+      <p id="temperature">Temperature: --</p>
+      <p id="description">Description: --</p>
+      <p id="humidity">Humidity: --</p>
+      <p id="windSpeed">Wind Speed: --</p>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = 'f49dc67ea8msh671375bc50fff41p1fca69jsn431a5ea72e44'; 
+    const apiHost = 'weatherapi-com.p.rapidapi.com'; 
+
+    document.getElementById('searchButton').addEventListener('click', getWeather);
+
+    document.getElementById('cityInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        getWeather();
+      }
+    });
+
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) {
+        alert('Please enter a city name!');
+        return;
+      }
+
+      const url = `https://${apiHost}/current.json?q=${encodeURIComponent(city)}`;
+
+      const options = {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Host': apiHost
+        }
+      };
+
+      showLoading(true);
+
+      try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        console.log('API Response:', data); // For debugging
+
+        if (response.ok && data.current) {
+          displayWeather(data);
+        } else {
+          const errorMessage = data.error && data.error.message ? data.error.message : 'City not found. Please try again.';
+          alert(errorMessage);
+          clearWeatherInfo();
+        }
+      } catch (error) {
+        console.error('Error fetching the weather data:', error);
+        alert('Error fetching the weather data. Please try again later.');
+        clearWeatherInfo();
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function displayWeather(data) {
+      const city = data.location.name;
+      const temperature = data.current.temp_c;
+      const description = data.current.condition.text;
+      const humidity = data.current.humidity;
+      const wind_speed = data.current.wind_kph;
+
+      document.getElementById('cityName').innerText = `City: ${city}`;
+      document.getElementById('temperature').innerText = `Temperature: ${temperature}°C`;
+      document.getElementById('description').innerText = `Description: ${description}`;
+      document.getElementById('humidity').innerText = `Humidity: ${humidity}%`;
+      document.getElementById('windSpeed').innerText = `Wind Speed: ${wind_speed} km/h`;
+    }
+
+    function clearWeatherInfo() {
+      document.getElementById('cityName').innerText = `City: --`;
+      document.getElementById('temperature').innerText = `Temperature: --`;
+      document.getElementById('description').innerText = `Description: --`;
+      document.getElementById('humidity').innerText = `Humidity: --`;
+      document.getElementById('windSpeed').innerText = `Wind Speed: --`;
+    }
+
+    function showLoading(isLoading) {
+      const button = document.getElementById('searchButton');
+      if (isLoading) {
+        button.disabled = true;
+        button.innerText = 'Loading...';
+      } else {
+        button.disabled = false;
+        button.innerText = 'Get Weather';
+      }
+    }
+  </script>
+</body>
+</html>
